@@ -20,6 +20,6 @@ public class LinkMapper {
   }
   public Link toEntity(CreateLinkRequest request) {
     String shortCode =  UUID.randomUUID().toString().substring(0, 8);
-    return new Link(shortCode, request.getOriginalUrl(), request.getExpiresAt());
+    return new Link(shortCode, request.originalUrl(), request.expiresAt());
   }
 }

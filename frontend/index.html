@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+
+    <style>
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-family: Arial, sans-serif;
+          background: #f4f4f4;
+        }
+
+        .container {
+          width: 100%;
+          max-width: 600px;
+          background: white;
+          padding: 32px;
+          border-radius: 16px;
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+          margin-top: 0;
+          text-align: center;
+        }
+
+        .form {
+          display: flex;
+          gap: 10px;
+        }
+
+        input {
+          flex: 1;
+          padding: 12px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 16px;
+        }
+
+        button {
+          padding: 12px 18px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 16px;
+        }
+
+        #shortenButton {
+          background: #222;
+          color: white;
+        }
+
+        #statsButton {
+          margin-top: 16px;
+        }
+
+        .result {
+          display: none;
+          margin-top: 24px;
+          padding: 16px;
+          border-radius: 8px;
+          background: #f8f8f8;
+        }
+
+        .result a {
+          word-break: break-all;
+        }
+
+        .error {
+          margin-top: 16px;
+          color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>URL Shortener</h1>
+
+    <div class="form">
+        <input
+                id="originalUrl"
+                type="text"
+                placeholder="https://example.com"
+        >
+
+        <button id="shortenButton">
+            Сократить
+        </button>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <div id="result" class="result">
+        <p>Короткая ссылка:</p>
+
+        <a id="shortUrl" href="#" target="_blank"></a>
+
+        <br>
+
+        <button id="statsButton">
+            Показать статистику
+        </button>
+
+        <p id="stats"></p>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080";
+
+    let currentShortCode = null;
+
+    const originalUrlInput = document.getElementById("originalUrl");
+    const shortenButton = document.getElementById("shortenButton");
+    const resultBlock = document.getElementById("result");
+    const shortUrlElement = document.getElementById("shortUrl");
+    const statsButton = document.getElementById("statsButton");
+    const statsElement = document.getElementById("stats");
+    const errorElement = document.getElementById("error");
+
+    shortenButton.addEventListener("click", createShortLink);
+    statsButton.addEventListener("click", loadStats);
+
+    async function createShortLink() {
+      errorElement.textContent = "";
+      statsElement.textContent = "";
+
+      const originalUrl = originalUrlInput.value;
+
+      const response = await fetch(`${API_URL}/api/links`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          originalUrl: originalUrl
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        errorElement.textContent = error;
+        return;
+      }
+
+      const data = await response.json();
+
+      currentShortCode = data.shortCode;
+
+      const shortUrl = `${API_URL}/${currentShortCode}`;
+
+      shortUrlElement.textContent = shortUrl;
+      shortUrlElement.href = shortUrl;
+
+      resultBlock.style.display = "block";
+    }
+
+    async function loadStats() {
+      if (currentShortCode === null) {
+        return;
+      }
+
+      const response = await fetch(
+        `${API_URL}/api/links/${currentShortCode}/stats`
+      );
+
+      if (!response.ok) {
+        statsElement.textContent = "Не удалось получить статистику";
+        return;
+      }
+
+      const data = await response.json();
+
+      statsElement.textContent = `Количество переходов: ${data.clicks}`;
+    }
+</script>
+
+</body>
+</html>
