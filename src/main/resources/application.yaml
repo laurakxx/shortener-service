@@ -3,9 +3,9 @@ spring:
     name: shortener-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/shortener
-    username: postgres
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/shortener}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:secret}
 
   jpa:
     hibernate:
@@ -13,7 +13,7 @@ spring:
     show-sql: true
 
   liquibase:
-    change-log:  classpath:db/changelog/db.changelog-master.yaml
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
 server:
   port: 8080
