@@ -9,6 +9,8 @@ import com.laura.shortener_service.exception.LinkNotFoundException;
 import com.laura.shortener_service.mapper.LinkMapper;
 import com.laura.shortener_service.repository.LinkRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,8 @@ public class LinkService {
     link.setClicks(link.getClicks() + 1); //кол-во кликов
     return link.getOriginalUrl();
   }
+
+  @Cacheable(value = "links", key = "#shortCode")
   @Transactional(readOnly = true)
   public LinkResponse findInformation(String shortCode) {
     Link link = findLinkByShortCode(shortCode);
@@ -44,6 +48,7 @@ public class LinkService {
     Link link = linkRepository.findByShortCode(shortCode).orElseThrow(()->new LinkNotFoundException());
     return link;
   }
+  @CacheEvict(value = "links", key = "#shortCode")
   @Transactional
   public void delete(String shortCode) {
     Link link = findLinkByShortCode(shortCode);

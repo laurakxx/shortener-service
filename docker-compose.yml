@@ -14,6 +14,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
   shortener-service:
     build: .
     ports:
@@ -22,9 +28,13 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/shortener
       DB_USERNAME: postgres
       DB_PASSWORD: secret
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   shortener-postgres-data:

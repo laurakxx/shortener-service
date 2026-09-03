@@ -4,6 +4,8 @@ import com.laura.shortener_service.dto.ClickStatsResponse;
 import com.laura.shortener_service.dto.CreateLinkRequest;
 import com.laura.shortener_service.dto.LinkResponse;
 import com.laura.shortener_service.service.LinkService;
+import com.laura.shortener_service.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,9 +18,15 @@ import org.springframework.web.bind.annotation.*;
 public class LinkController {
 
   private final LinkService linkService;
+  private final RateLimitService rateLimitService;
 
   @PostMapping
-  public ResponseEntity<LinkResponse> create(@Valid @RequestBody CreateLinkRequest request){
+  public ResponseEntity<LinkResponse> create(@Valid @RequestBody CreateLinkRequest request,  HttpServletRequest httpRequest){
+    String ip = httpRequest.getRemoteAddr();
+    if(rateLimitService.isRateLimited(ip)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+
     LinkResponse response = linkService.createLink(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
