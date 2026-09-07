@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-click-events-table
+      author: laura
+      changes:
+        - createTable:
+            tableName: click_events
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: short_code
+                  type: VARCHAR(8)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: original_url
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: clicked_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_agent
+                  type: TEXT
+              - column:
+                  name: correlation_id
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true

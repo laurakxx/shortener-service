@@ -85,7 +85,7 @@ services:
   analytics-service:
 
     build:
-      context: ../analytics-service
+      context: ./analytics-service
     ports:
       - "8081:8081"
     environment:
