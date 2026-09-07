@@ -30,11 +30,78 @@ services:
       DB_PASSWORD: secret
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ANALYTICS_BASE_URL: http://analytics-service:8081
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
+      kafka:
+        condition: service_healthy
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  analytics-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: analytics_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5434:5432"
+    volumes:
+      - analytics-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d analytics_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  analytics-service:
+
+    build:
+      context: ../analytics-service
+    ports:
+      - "8081:8081"
+    environment:
+      DB_URL: jdbc:postgresql://analytics-postgres:5432/analytics_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: secret
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      analytics-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+
+
 
 volumes:
   shortener-postgres-data:
+  analytics-postgres-data:

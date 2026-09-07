@@ -11,3 +11,12 @@ spring:
 
   liquibase:
     enabled: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+analytics:
+  base-url: http://localhost:8081

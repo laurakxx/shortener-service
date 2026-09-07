@@ -1,5 +1,7 @@
 package com.laura.shortener_service.controller;
 
+import com.laura.shortener_service.client.AnalyticsClient;
+import com.laura.shortener_service.dto.AnalyticsResponse;
 import com.laura.shortener_service.dto.ClickStatsResponse;
 import com.laura.shortener_service.dto.CreateLinkRequest;
 import com.laura.shortener_service.dto.LinkResponse;
@@ -19,6 +21,7 @@ public class LinkController {
 
   private final LinkService linkService;
   private final RateLimitService rateLimitService;
+  private final AnalyticsClient analyticsClient;
 
   @PostMapping
   public ResponseEntity<LinkResponse> create(@Valid @RequestBody CreateLinkRequest request,  HttpServletRequest httpRequest){
@@ -44,6 +47,11 @@ public class LinkController {
   @GetMapping("/{shortCode}/stats")
   public ResponseEntity<ClickStatsResponse> getShortCodeStats(@PathVariable String shortCode) {
     ClickStatsResponse response = linkService.getShortCodeStats(shortCode);
+    return ResponseEntity.ok(response);
+  }
+  @GetMapping("/{shortCode}/analytics")
+  public ResponseEntity<AnalyticsResponse> getAnalytics(@PathVariable String shortCode) {
+    AnalyticsResponse response = analyticsClient.getAnalyticsByShortCode(shortCode);
     return ResponseEntity.ok(response);
   }
 
