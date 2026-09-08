@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,9 +20,7 @@ public class RedirectController {
   @GetMapping("/{shortCode}")
   public ResponseEntity<Void> redirect(@PathVariable String shortCode, HttpServletRequest request) {
     String userAgent = request.getHeader("User-Agent");
-    String correlationId = UUID.randomUUID().toString();
-
-    String originalUrl = linkService.redirect(shortCode, userAgent, correlationId);
+    String originalUrl = linkService.redirect(shortCode, userAgent);
     return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(originalUrl)).build();
   }
 }

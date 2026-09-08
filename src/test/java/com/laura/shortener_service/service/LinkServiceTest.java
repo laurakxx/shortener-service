@@ -19,7 +19,6 @@ class LinkServiceTest {
   private static final String ORIGINAL_URL = "https://example.com/products/spring-boot-course";
   private static final String SHORT_CODE = "a7f3c9d2";
   private static final String USER_AGENT = "test-user-agent";
-  private static final String CORRELATION_ID = "test-correlation-id";
 
   @Autowired
   private LinkRepository linkRepository;
@@ -51,7 +50,7 @@ class LinkServiceTest {
     LinkResponse firstResponse = linkService.createLink(request);
     String shortCode = firstResponse.shortCode();
 
-    String originalUrl = linkService.redirect(shortCode, USER_AGENT, CORRELATION_ID);
+    String originalUrl = linkService.redirect(shortCode, USER_AGENT);
 
     assertEquals(ORIGINAL_URL, originalUrl);
   }

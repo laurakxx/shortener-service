@@ -5,9 +5,10 @@ import com.laura.analytics_service.entity.ClickEvent;
 import com.laura.analytics_service.event.LinkClickedEvent;
 import com.laura.analytics_service.repository.ClickEventRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AnalyticsService {
@@ -27,6 +28,7 @@ public class AnalyticsService {
         event.correlationId()
     );
     clickEventRepository.save(clickEvent);
+    log.info("Click recorded for {}", event.shortCode());
   }
 
   @Transactional(readOnly = true)
