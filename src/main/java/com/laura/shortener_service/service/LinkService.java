@@ -9,6 +9,7 @@ import com.laura.shortener_service.exception.LinkExpiredException;
 import com.laura.shortener_service.exception.LinkNotFoundException;
 import com.laura.shortener_service.mapper.LinkMapper;
 import com.laura.shortener_service.repository.LinkRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -27,10 +28,12 @@ public class LinkService {
   private final LinkMapper linkMapper;
   private final KafkaTemplate<String, LinkClickedEvent> kafkaTemplate;
   private static final String LINK_CLICKS_TOPIC = "link-clicks";
+  private final MeterRegistry meterRegistry;
 
   @Transactional
   public LinkResponse createLink(CreateLinkRequest request) {
     Link savedLink = linkRepository.save(linkMapper.toEntity(request));
+    meterRegistry.counter("links.created").increment();
     return linkMapper.toResponse(savedLink);
   }
   @Transactional
@@ -39,6 +42,8 @@ public class LinkService {
     if (link.getExpiresAt() != null && link.getExpiresAt().isBefore(LocalDateTime.now())) {
       throw new LinkExpiredException(shortCode);
     }
+    meterRegistry.counter("links.clicks").increment();
+
     link.setClicks(link.getClicks() + 1); //кол-во кликов
     String correlationId = MDC.get("correlationId");
     LinkClickedEvent event = new LinkClickedEvent(
