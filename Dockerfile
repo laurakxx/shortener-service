@@ -8,7 +8,7 @@ COPY settings.gradle .
 COPY src src
 
 RUN chmod +x gradlew
-RUN --mount=type=cache,target=/root/.gradle ./gradlew bootJar -x test
+RUN --mount=type=cache,id=shortener-gradle,target=/root/.gradle ./gradlew bootJar -x test
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
