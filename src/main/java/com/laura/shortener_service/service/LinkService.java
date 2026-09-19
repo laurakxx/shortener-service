@@ -36,7 +36,7 @@ public class LinkService {
   @Transactional
   public LinkResponse createLink(CreateLinkRequest request) {
     Link savedLink = linkRepository.save(linkMapper.toEntity(request));
-    meterRegistry.counter("links.created").increment();
+    meterRegistry.counter("links_created").increment();
     return linkMapper.toResponse(savedLink);
   }
   @Transactional
