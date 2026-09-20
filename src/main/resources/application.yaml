@@ -7,7 +7,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5433/shortener}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:secret}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:

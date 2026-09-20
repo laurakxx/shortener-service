@@ -41,3 +41,4 @@ application-local.yml
 application-local.yaml
 .env
 *.env
+k8s/secret.yml
