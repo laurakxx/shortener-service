@@ -3,6 +3,7 @@ package com.laura.shortener_service.service;
 import com.laura.shortener_service.dto.ClickStatsResponse;
 import com.laura.shortener_service.dto.CreateLinkRequest;
 import com.laura.shortener_service.dto.LinkResponse;
+import com.laura.shortener_service.dto.RedirectData;
 import com.laura.shortener_service.entity.Link;
 import com.laura.shortener_service.entity.OutboxEvent;
 import com.laura.shortener_service.entity.OutboxStatus;
@@ -17,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
@@ -32,6 +32,7 @@ public class LinkService {
   private final MeterRegistry meterRegistry;
   private final OutboxEventRepository outboxEventRepository;
   private final ObjectMapper objectMapper;
+  private final LinkLookupService linkLookupService;
 
   @Transactional
   public LinkResponse createLink(CreateLinkRequest request) {
@@ -39,22 +40,21 @@ public class LinkService {
     meterRegistry.counter("links_created").increment();
     return linkMapper.toResponse(savedLink);
   }
+
   @Transactional
   public String redirect(String shortCode, String userAgent) {
-    Link link =  findLinkByShortCode(shortCode);
-    if (link.getExpiresAt() != null && link.getExpiresAt().isBefore(LocalDateTime.now())) {
+    RedirectData data = linkLookupService.findForRedirect(shortCode); //для Redis
+    if (data.expiresAt() != null && data.expiresAt().isBefore(LocalDateTime.now())) {
       throw new LinkExpiredException(shortCode);
     }
     meterRegistry.counter("links.clicks").increment();
-
-    link.setClicks(link.getClicks() + 1); //кол-во кликов
-    linkRepository.save(link);
+    linkRepository.incrementClicks(shortCode); //атомарная операция
 
     String correlationId = MDC.get("correlationId");
 
     LinkClickedEvent event = new LinkClickedEvent(
-        link.getShortCode(),
-        link.getOriginalUrl(),
+        shortCode,
+        data.originalUrl(),
         LocalDateTime.now(),
         userAgent,
         correlationId
@@ -62,7 +62,7 @@ public class LinkService {
 
     OutboxEvent outboxEvent = new OutboxEvent(
         "LINK",
-        link.getShortCode(),
+        shortCode,
         "LINK_CLICKED",
         objectMapper.writeValueAsString(event),
         OutboxStatus.PENDING
@@ -70,10 +70,10 @@ public class LinkService {
     outboxEventRepository.save(outboxEvent);
 
     log.info("Redirect for {}", shortCode);
-    return link.getOriginalUrl();
+    return data.originalUrl();
   }
 
-  @Cacheable(value = "links", key = "#shortCode")
+
   @Transactional(readOnly = true)
   public LinkResponse findInformation(String shortCode) {
     Link link = findLinkByShortCode(shortCode);

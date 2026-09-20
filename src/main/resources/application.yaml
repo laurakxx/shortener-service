@@ -33,10 +33,15 @@ analytics:
 
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 management:
   endpoints:
     web:
       exposure:
         include: health,prometheus
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
 
