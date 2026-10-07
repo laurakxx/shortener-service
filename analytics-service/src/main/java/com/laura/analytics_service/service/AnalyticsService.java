@@ -1,7 +1,6 @@
 package com.laura.analytics_service.service;
 
 import com.laura.analytics_service.dto.AnalyticsResponse;
-import com.laura.analytics_service.entity.ClickEvent;
 import com.laura.analytics_service.event.LinkClickedEvent;
 import com.laura.analytics_service.repository.ClickEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,18 +16,19 @@ public class AnalyticsService {
   @Transactional
   public void recordClick(LinkClickedEvent event) {
 
-    if(clickEventRepository.existsByCorrelationId(event.correlationId())) {
-      return;
-    }
-    ClickEvent clickEvent = new ClickEvent(
+    int inserted = clickEventRepository.insertClickIfNotExists(
+        event.eventId(),
         event.shortCode(),
         event.originalUrl(),
         event.clickedAt(),
         event.userAgent(),
         event.correlationId()
     );
-    clickEventRepository.save(clickEvent);
-    log.info("Click recorded for {}", event.shortCode());
+    if (inserted == 0) {
+      log.info("Duplicate event ignored. eventId={}", event.eventId());
+      return;
+    }
+    log.info("Click recorded for {}, eventId={}", event.shortCode(), event.eventId());
   }
 
   @Transactional(readOnly = true)

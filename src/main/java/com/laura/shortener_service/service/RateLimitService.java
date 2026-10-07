@@ -1,10 +1,12 @@
 package com.laura.shortener_service.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import java.time.Duration;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RateLimitService {
@@ -23,6 +25,7 @@ public class RateLimitService {
       return requests!=null && requests>MAX_REQUESTS;
     }
     catch (Exception e){
+      log.warn("Rate limit check failed for ip={}", ip, e);
       return false;
     }
 

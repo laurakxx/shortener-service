@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -51,8 +53,9 @@ public class LinkService {
     linkRepository.incrementClicks(shortCode); //атомарная операция
 
     String correlationId = MDC.get("correlationId");
-
+    String eventId = UUID.randomUUID().toString();
     LinkClickedEvent event = new LinkClickedEvent(
+        eventId,
         shortCode,
         data.originalUrl(),
         LocalDateTime.now(),

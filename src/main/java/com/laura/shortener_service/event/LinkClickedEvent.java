@@ -3,6 +3,7 @@ package com.laura.shortener_service.event;
 import java.time.LocalDateTime;
 
 public record LinkClickedEvent(
+    String eventId,
     String shortCode,
     String originalUrl,
     LocalDateTime clickedAt,

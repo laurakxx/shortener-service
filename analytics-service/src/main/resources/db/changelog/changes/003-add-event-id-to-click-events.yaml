@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-add-event-id-to-click-events
+      author: laura
+      changes:
+        - addColumn:
+            tableName: click_events
+            columns:
+              - column:
+                  name: event_id
+                  type: VARCHAR(64)
+
+        - sql:
+            sql: >
+              UPDATE click_events
+              SET event_id = 'legacy-' || id
+              WHERE event_id IS NULL;
+
+        - addNotNullConstraint:
+            tableName: click_events
+            columnName: event_id
+            columnDataType: VARCHAR(64)
+
+        - addUniqueConstraint:
+            tableName: click_events
+            columnNames: event_id
+            constraintName: uk_click_events_event_id
+
+        - dropUniqueConstraint:
+            tableName: click_events
+            constraintName: click_events_correlation_id_key
