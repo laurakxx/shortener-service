@@ -1,6 +1,7 @@
 package com.laura.analytics_service.controller;
 
 import com.laura.analytics_service.dto.AnalyticsResponse;
+import com.laura.analytics_service.entity.FailedEvent;
 import com.laura.analytics_service.event.LinkClickedEvent;
 import com.laura.analytics_service.service.AnalyticsService;
 import com.laura.analytics_service.service.FailedEventService;
@@ -26,7 +27,7 @@ public class AnalyticsController {
     return ResponseEntity.ok(response);
   }
   @GetMapping("/failed")
-  public ResponseEntity<List<LinkClickedEvent>> getFailedEvents(){
+  public ResponseEntity<List<FailedEvent>> getFailedEvents(){
     return ResponseEntity.ok(failedEventService.getFailedEventsList());
   }
 }

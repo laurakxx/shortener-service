@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-failed-events-table
+      author: laura
+      changes:
+        - createTable:
+            tableName: failed_events
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: topic
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: partition_number
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: message_offset
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: payload
+                  type: BYTEA
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: error_message
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false

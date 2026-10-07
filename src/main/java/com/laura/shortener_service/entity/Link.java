@@ -14,7 +14,7 @@ public class Link {
   @Column(name = "short_code", nullable = false, unique = true)
   private String shortCode;
 
-  @Column(name = "original_url", nullable = false)
+  @Column(name = "original_url", nullable = false, length = 2048)
   private String originalUrl;
 
   private int clicks;

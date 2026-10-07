@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-expand-original-url
+      author: laura
+      changes:
+        - modifyDataType:
+            tableName: links
+            columnName: original_url
+            newDataType: VARCHAR(2048)

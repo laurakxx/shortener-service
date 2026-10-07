@@ -26,21 +26,31 @@ public class OutboxRelay {
   @Scheduled(fixedDelay = 5000)
   public void relay() {
     List<OutboxEvent> list = outboxEventRepository.findTop100ByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
-    if(list.isEmpty()) {
+    if (list.isEmpty()) {
       return;
     }
-    for (OutboxEvent event: list) {
-      try{
-        LinkClickedEvent linkClickedEvent = objectMapper.readValue(event.getPayload(), LinkClickedEvent.class);
+    for (OutboxEvent event : list) {
+      LinkClickedEvent linkClickedEvent;
+      try {
+        linkClickedEvent =
+            objectMapper.readValue(event.getPayload(), LinkClickedEvent.class);
+      } catch (Exception e) {
+        event.setStatus(OutboxStatus.FAILED);
+        outboxEventRepository.save(event);
+
+        log.error("Invalid outbox payload. eventId={} marked as FAILED", event.getId(), e);
+        continue;
+      }
+
+      try {
         kafkaTemplate.send(LINK_CLICKS_TOPIC, linkClickedEvent).get();
         event.setStatus(OutboxStatus.SENT);
         event.setSentAt(LocalDateTime.now());
         outboxEventRepository.save(event);
       }
       catch (Exception e) {
-        log.error("Failed to send outbox event {}", event.getId(), e);
+        log.error("Kafka send failed for outbox event {}. Will retry later", event.getId(), e);
       }
-
     }
   }
 }
